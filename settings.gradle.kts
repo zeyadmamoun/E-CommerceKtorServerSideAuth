@@ -1,0 +1,1 @@
+rootProject.name = "com.zeyadmammoun.e-commerce-server-side"
