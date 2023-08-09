@@ -5,7 +5,7 @@ import org.ktorm.database.Database
 class UsersDatabase {
 
     companion object{
-        private const val databaseUrl = "jdbc:postgresql://localhost:5432/e-commerce_users"
+        private const val databaseUrl = "jdbc:postgresql://localhost:5432/e-commerce"
         @Volatile
         var INSTANCE: Database? = null
 
@@ -15,7 +15,7 @@ class UsersDatabase {
                     url = databaseUrl,
                     driver = "org.postgresql.Driver",
                     user = "zeyadmamoun",
-                    password = "172000"
+                    password = "123456"
                 )
                 INSTANCE = instance
                 return instance
