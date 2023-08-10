@@ -85,9 +85,8 @@ fun Application.configureRouting() {
                         call.respond(Response(true,"User email: ${userCredentials.email} is verified"))
                     }
                 }catch (e: Exception){
-
+                    call.respond(Response(false,"token needs to be regenerated"))
                 }
-
             }
         }
     }
