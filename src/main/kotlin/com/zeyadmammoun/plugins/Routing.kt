@@ -5,6 +5,7 @@ import com.zeyadmammoun.database.DatabaseFunctions
 import com.zeyadmammoun.models.Response
 import com.zeyadmammoun.models.User
 import com.zeyadmammoun.models.UserCredentials
+import com.zeyadmammoun.models.UserResponse
 import com.zeyadmammoun.utils.EmailValidation
 import com.zeyadmammoun.utils.TokenGenerator
 import io.ktor.http.*
@@ -28,16 +29,16 @@ fun Application.configureRouting() {
                 user = call.receive()
             } catch (e: Exception) {
                 println(e)
-                call.respond(HttpStatusCode.NotAcceptable,Response(false,"data sent is not valid"))
+                call.respond(HttpStatusCode.NotAcceptable, Response(false, "data sent is not valid"))
                 return@post
             }
 
-            if (!EmailValidation.isEmailValid(user.email)){
-                call.respond(HttpStatusCode.BadRequest,Response(false,"email is not valid"))
-               return@post
+            if (!EmailValidation.isEmailValid(user.email)) {
+                call.respond(HttpStatusCode.BadRequest, Response(false, "email is not valid"))
+                return@post
             }
-            if (tools.checkIfUserExist(user.email) != null){
-                call.respond(HttpStatusCode.BadRequest,Response(false,"email already exist"))
+            if (tools.checkIfUserExist(user.email) != null) {
+                call.respond(HttpStatusCode.BadRequest, Response(false, "email already exist"))
                 return@post
             }
             if (user.password.length < 6) {
@@ -45,48 +46,72 @@ fun Application.configureRouting() {
                 return@post
             }
             tools.insetUser(user)
-            val token = tokenGenerator.generateToken(user.email,user.password)
-            call.respond(HttpStatusCode.OK,Response(true,token))
+            val token = tokenGenerator.generateToken(user.email, user.password)
+            call.respond(HttpStatusCode.OK, Response(true, token))
         }
 
-        post("/login"){
+        post("/login") {
             val userCredentials: UserCredentials?
             try {
                 userCredentials = call.receive()
             } catch (e: Exception) {
                 println(e)
-                call.respond(HttpStatusCode.NotAcceptable,Response(false,"data sent is not valid"))
+                call.respond(HttpStatusCode.NotAcceptable, Response(false, "data sent is not valid"))
                 return@post
             }
 
             val user = tools.checkIfUserExist(userCredentials.email)
-            if (user == null){
-                call.respond(HttpStatusCode.NotAcceptable,Response(false,"invalid username or password"))
+            if (user == null) {
+                call.respond(HttpStatusCode.NotAcceptable, Response(false, "Email not found"))
                 return@post
             }
 
-            val checkPassword = BCrypt.checkpw(userCredentials.password,user.password)
-            if (!checkPassword){
-                call.respond(HttpStatusCode.NotAcceptable,Response(false,"invalid username or password"))
+            val checkPassword = BCrypt.checkpw(userCredentials.password, user.password)
+            if (!checkPassword) {
+                call.respond(HttpStatusCode.NotAcceptable, Response(false, "invalid email or password"))
                 return@post
             }
-            val token = tokenGenerator.generateToken(userCredentials.email,userCredentials.password)
-            call.respond(HttpStatusCode.OK,Response(true,token))
+            val token = tokenGenerator.generateToken(userCredentials.email, userCredentials.password)
+            call.respond(HttpStatusCode.OK, Response(true, token))
+            println(token)
         }
 
         authenticate {
-            get("/speedLogin"){
+            get("/speedLogin") {
+                println(call.request.headers)
                 try {
                     val principal = call.principal<JWTPrincipal>()
                     principal?.let {
                         val email = principal.payload.getClaim("email").asString()
                         val password = principal.payload.getClaim("password").asString()
-                        val userCredentials = UserCredentials(email,password)
-                        call.respond(Response(true,"User email: ${userCredentials.email} is verified"))
+                        val userCredentials = UserCredentials(email, password)
+                        call.respond(Response(true, "User email: ${userCredentials.email} is verified"))
                     }
-                }catch (e: Exception){
+                } catch (e: Exception) {
                     println(e)
-                    call.respond(Response(false,"token needs to be regenerated"))
+                    call.respond(Response(false, "token needs to be regenerated"))
+                }
+            }
+        }
+
+        authenticate {
+            get("/getUserData") {
+                try {
+                    val principal = call.principal<JWTPrincipal>()
+                    principal?.let {
+                        val email = principal.payload.getClaim("email").asString()
+                        val user = tools.checkIfUserExist(email)
+                        if (user != null) {
+                            // Remove sensitive information like password before sending
+                            val userDataToSend = user.copy(password = "")
+                            call.respond(HttpStatusCode.OK, UserResponse(true,userDataToSend))
+                        } else {
+                            call.respond(HttpStatusCode.NotFound, Response(false, "User not found"))
+                        }
+                    } ?: call.respond(HttpStatusCode.Unauthorized, Response(false, "Invalid token"))
+                } catch (e: Exception) {
+                    println(e)
+                    call.respond(HttpStatusCode.InternalServerError, Response(false, "Error retrieving user data"))
                 }
             }
         }

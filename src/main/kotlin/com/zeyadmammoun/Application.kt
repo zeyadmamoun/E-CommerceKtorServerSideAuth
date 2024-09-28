@@ -21,7 +21,6 @@ fun Application.module() {
     }
 
     database = UsersDatabase.getDatabase()
-
     configureMonitoring()
     configureSecurity()
     configureRouting()

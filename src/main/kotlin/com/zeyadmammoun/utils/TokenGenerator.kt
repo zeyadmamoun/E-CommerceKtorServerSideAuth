@@ -2,11 +2,9 @@ package com.zeyadmammoun.utils
 
 import com.auth0.jwt.JWT
 import com.auth0.jwt.algorithms.Algorithm
-import com.zeyadmammoun.models.User
 import io.ktor.server.config.*
 import kotlinx.datetime.*
 import kotlinx.datetime.TimeZone
-import java.net.PasswordAuthentication
 import java.util.*
 
 class TokenGenerator(config: HoconApplicationConfig) {

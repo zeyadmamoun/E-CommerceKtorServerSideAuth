@@ -15,7 +15,7 @@ class UsersDatabase {
                     url = databaseUrl,
                     driver = "org.postgresql.Driver",
                     user = "zeyadmamoun",
-                    password = "123456"
+                    password = "899489"
                 )
                 INSTANCE = instance
                 return instance
