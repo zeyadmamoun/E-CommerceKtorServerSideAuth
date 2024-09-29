@@ -104,14 +104,14 @@ fun Application.configureRouting() {
                         if (user != null) {
                             // Remove sensitive information like password before sending
                             val userDataToSend = user.copy(password = "")
-                            call.respond(HttpStatusCode.OK, UserResponse(true,userDataToSend))
+                            call.respond(HttpStatusCode.OK, UserResponse(true,userDataToSend,""))
                         } else {
-                            call.respond(HttpStatusCode.NotFound, Response(false, "User not found"))
+                            call.respond(HttpStatusCode.NotFound, UserResponse(true,null,"user not found"))
                         }
-                    } ?: call.respond(HttpStatusCode.Unauthorized, Response(false, "Invalid token"))
+                    } ?: call.respond(HttpStatusCode.Unauthorized, UserResponse(true,null,"invalid token"))
                 } catch (e: Exception) {
                     println(e)
-                    call.respond(HttpStatusCode.InternalServerError, Response(false, "Error retrieving user data"))
+                    call.respond(HttpStatusCode.InternalServerError, UserResponse(true,null,"error retrieving user data"))
                 }
             }
         }
